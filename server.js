@@ -42,8 +42,6 @@ app.use(express.static(__dirname + '/views'));
 
 app.listen(parseInt(port, 10), function () {
   console.log('server running at\n  => http://localhost:' + port + '/\nCTRL + C to shutdown');
-	var open = require('open');
-	open('http://localhost:' + port);
 });
 
 
