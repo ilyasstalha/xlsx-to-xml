@@ -1,7 +1,7 @@
 var ractive;
 
 var initConvertForm = function() {
-	ractives.convertForm =  new Ractive({
+	convertForm =  new Ractive({
 	  el: '#convert-form-container',
 	  template: '#convert-form',
 	  data: {display: 'none', values: {

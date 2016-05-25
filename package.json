@@ -3,6 +3,7 @@
 		"develop": "npm install && node --debug server.js"
 	},
 	"dependencies": {
-		"express": "*"
+		"express": "*",
+		"open": "*"
 	}
 }
