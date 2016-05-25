@@ -1,135 +1,50 @@
 var ractive;
 
-var initConvertForm = function() {
-	convertForm =  new Ractive({
-	  el: '#convert-form-container',
-	  template: '#convert-form',
-	  data: {display: 'none', values: {
-	  	nodeNameRoot: 'root',
-	  	useCommonRowNodeName: true,
-	  	nodeNameRowCommon: 'row',
-	  	useCommonColNodeName: true,
-	  	nodeNameColCommon: 'column'
-	  }}
-	});
-
-}
-
 var readFile = function(file) {
   var reader = new FileReader();
 
-  reader.onload = function(e) {
-    var workbook = XLSX.read(e.target.result, {type: 'binary'});
-
-    setData(extractWorkbookData(workbook), 'File parsed!');
-  };
+  reader.onload = processLoadedFile;
   reader.readAsBinaryString(file);
 }
 
-var extractWorkbookData = function(workbook) {
-	if(!_.isArray(workbook.SheetNames) || !workbook.SheetNames.length) {
-		return false;
-	}
+var processLoadedFile = function(e) {
+  var workbook = XLSX.read(e.target.result, {type: 'binary'});
 
-	// we're only processing the first sheet at the moment
-	var sheetOne = workbook.Sheets[workbook.SheetNames[0]],
-		json = XLSX.utils.sheet_to_json(sheetOne);
+  if(!_.isArray(workbook.SheetNames) || !workbook.SheetNames.length) {
+  	setMessage('File parsed: the workbook has no sheets!');
+  	return;
+  }
 
-	return reformatXslxJson(json);
-}
-
-var reformatXslxJson = function(json) {
-	if(!_.isArray(json) || !json.length) {
-		return [];
-	}
-
-	var rowTag = ractive.get('data.tags.common.row');
-
-	var mapRow = function(row) {
-		return {
-			tag: rowTag,
-			children: _.map(row, function(cell, key) {
-				return {
-					content: cell,
-					attrs: {}
-				}
-			})
-		}
-	};
-
-	return [mapRow(_.keys(json[0]))].concat( _.map(json, mapRow));
-}
-
-
-var convertData = function(e) {
-	var x2js = new X2JS({
-      arrayAccessFormPaths : [
-        "something.row"
-      ]
-    }),
-		xmlStr = generateXML();
-
-}
-
-var generateXML = function() {
-	return convertNode(formatDataForConversion())
-}
-
-var formatDataForConversion = function() {
-	var rootNodeTag = ractive.get('data.tags.root'),
-		commonRowTag = ractive.get('data.tags.useCommon.row') ? ractive.get('data.tags.common.row') : false,
-		colTags = ractive.get('data.tags.useCommon.col') ? ractive.get('data.tags.common.col') : ractive.get('data.tags.cols'),
-		obj = {};
-
-	obj[rootNodeTag] = _.filter(_.map(ractive.get('data.rows'), function(rowData, i) {
-		if(rowData.deleted) return false;
-		debugger;
-		return formatRowDataForConversion(rowData, commonRowTag || rowData.tag, colTags);
-	}));
-
-	return obj;
-}
-
-var formatRowDataForConversion = function(rowData, tagName, childTagNames) {
-	return {
-		tag: tagName,
-		attrs: formatNodeAttrs(rowData),
-		content: formatRowContent(rowData, childTagNames)
-	}
-}
-
-var formatNodeAttrs = function(nodeData) {
-	return {};
-}
-
-var formatRowContent = function(rowData, keys) {
-	if(_.isArray(keys)) {
-		return _.map(keys, function(key, i) {
-			return {
-				tag: key,
-				content: rowData.values[i]
-			}
-		});
-	}
-
-	return _.map(rowData.values, function(value) {
-		return {
-			tag: keys,
-			content: value
-		};
+	_.each(workbook.SheetNames, function(sheetName) {
+		addSheet(workbook.Sheets[sheetName]);
 	});
+
+  //setData(extractWorkbookData(workbook));
 }
 
-var setData = function(data, message) {
+var addSheet = function(worksheet) {
+	var sheet = new Sheet(1, worksheet, XLSX);
+}
+
+var sheetKey = function(sheetId) {
+	return 'sheets.' + sheetId;
+}
+
+var setSheetData = function(sheetId, data) {
 	if(!data) data = {};
 
-	ractive.set({
-		'data.rows': data,
-		'data.tags.cols': new Array(_.max(_.pluck(_.pluck(data, 'children'), 'length'))).fill(ractive.get('data.tags.common.col')),
-		processing: false,
-		statusMessage: message,
-		dataSet: true
-	});
+	var setDataObj = {};
+
+	setDataObj[sheetKey(sheetId) + '.rows'] = data;
+	setDataObj[sheetKey(sheetId) + '.dataSet'] = true;
+	setDataObj[sheetKey(sheetId) + '.tags.cols'] = new Array(_.max(_.pluck(_.pluck(data, 'children'), 'length')))
+		.fill(ractive.get('data.tags.common.col'));
+
+	ractive.set(setDataObj);
+}
+
+var setMessage = function(message) {
+	ractive.set('statusMessage', message);
 }
 
 var setColNodeNames = function(nodeNames) {
@@ -142,7 +57,6 @@ var setColNodeNames = function(nodeNames) {
 var setDeleteRow = function(row, value) {
 	ractive.set('data.rows.' + row + '.deleted', value);
 }
-
 
 var renderNode = function(node, level) {
 	if(node.deleted) return '';
@@ -181,7 +95,7 @@ var renderNodeTab = function(level) {
 }
 
 var tabCharacter = function() {
-	return '  '
+	return '  ';
 }
 
 var updateAllColTags = function(tag, colIndex) {
@@ -199,24 +113,19 @@ var initMain = function() {
 	  data: {
 	  	statusMessage: '',
 	  	processing: false,
-	  	converting: false,
-	  	dataSet: false,
-	  	showConvertForm: false,
+	  	//showConvertForm: false,
 	  	showXml: false,
-	  	data: {
-	  		rows: [],
-	  		tags: {
-	  			common: {
-		  			row: 'row',
-		  			col: 'cell'
-	  			},
-	  			root: 'root',
-	  			cols: [],
-	  			useCommon: {
-	  				row: true,
-	  				col: true
-	  			}
-	  		}
+  		sheets: {},
+  		global_tags: {
+  			common: {
+	  			row: 'row',
+	  			col: 'cell'
+  			},
+  			root: 'root',
+  			useCommon: {
+  				row: true,
+  				col: true
+  			}
 	  	},
 	  	outputNode: renderNode,
 	  },
@@ -251,6 +160,33 @@ var initMain = function() {
 		updateAllColTags(newValue, _.last(keypath.split('.')));
 	}, {init: false});
 
+
+}
+
+var Sheet = function(id, worksheet, XLSX) {
+
+
+	var extracted = function(json) {
+		if(!_.isArray(json) || !json.length) {
+			return [];
+		}
+
+		var rowTag = ractive.get('data.tags.common.row');
+
+		var mapRow = function(row) {
+			return {
+				tag: rowTag,
+				children: _.map(row, function(cell, key) {
+					return {
+						content: cell,
+						attrs: {}
+					}
+				})
+			}
+		};
+
+		return [mapRow(_.keys(json[0]))].concat( _.map(json, mapRow));
+	}(XLSX.utils.sheet_to_json(worksheet));
 
 }
 
