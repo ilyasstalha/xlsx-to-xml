@@ -23,17 +23,6 @@
 					{{>choose-file}}
 				</div>
 			</div>
-
-			<div class="row">
-				<div class="six columns" id="convert-form-container">
-				{{#if dataSet}}
-					<button class="button=primary" on-click="toggleConvertForm">Specify node tags</button>
-					{{#if showConvertForm}}
-						{{>convert-form}}
-					{{/if}}
-				{{/if}}
-				</div>
-			</div>
 			<div class="row">
 				<div class="six columns" id="request-status">
 					{{#if processing}}
@@ -43,13 +32,25 @@
 				</div>
 			</div>
 
-			<div class="row" id="data-table-container">
-				{{>data-table}}
-			</div>
+			{{#each data.sheets}}
+				<div class="row">
+					<div class="six columns" class="convert-form-container">
+					{{#if dataSet}}
+						<button class="button=primary" on-click="toggleConvertForm">Specify node tags</button>
+						{{#if showConvertForm}}
+							{{>convert-form}}
+						{{/if}}
+					{{/if}}
+					</div>
+				</div>
+				<div class="row" id="data-table-container">
+					{{>data-table}}
+				</div>
 
-			<div class="row" id="data-xml-container">
-				{{>xml}}
-			</div>
+				<div class="row" id="data-xml-container">
+					{{>xml}}
+				</div>
+			{{/each}}
 		</script>
 
 		<script id="choose-file" type="template/javascript">
