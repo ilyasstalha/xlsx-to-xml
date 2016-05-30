@@ -63,6 +63,7 @@ var setSheetData = function(sheetName, data, isVisible) {
 	setDataObj['showSettingsForm'] = false;
 	setDataObj['isVisible'] = isVisible;
 	setDataObj['useSelfClosingTags'] = true;
+	setDataObj['tabLength'] = 4;
 	setDataObj['useCommonColTag'] = true;
 	setDataObj['useCommonRowTag'] = true;
 	setDataObj['commonColTag'] = commonColTag;
@@ -106,7 +107,7 @@ var setDeleteRow = function(row, sheet, value) {
 }
 
 var renderSheetXML = function(sheet) {
-	var xml = '\n' + renderNodeOpeningTag(sheet.rootTag, 0) + '\n';
+	var xml = '\n' + renderNodeOpeningTag(sheet.rootTag, 0, sheet.tabLength) + '\n';
 
 	if(sheet.rows) {
 		xml += _.reduce(sheet.rows, function(carry, row) {
@@ -114,32 +115,47 @@ var renderSheetXML = function(sheet) {
 		}, '');
 	}
 
-	xml += '\n' + renderNodeClosingTag(sheet.rootTag, 0);
+	xml += '\n' + renderNodeClosingTag(sheet.rootTag, 0, sheet.tabLength);
 
 	return  xml;
 }
 
-var renderNodeOpeningTag = function(tag, level) {
-	return renderNodeTab(level) + '<' + tag + '>';
+var renderNodeOpeningTag = function(tag, level, tabLength) {
+	return renderNodeTab(level, tabLength) + '<' + tag + '>';
 }
 
-var renderNodeClosingTag = function(tag, level, noTab) {
-	return (noTab ? '' : renderNodeTab(level)) + '</' + tag + '>\n';
+var renderNodeClosingTag = function(tag, level, tabLength, noTab) {
+	return (noTab ? '' : renderNodeTab(level, tabLength)) + '</' + tag + '>\n';
 }
 
-var renderNodeSelfClosingTag = function(tag, level) {
-	return renderNodeTab(level) + '<' + tag + '/>\n';
+var renderNodeSelfClosingTag = function(tag, level, tabLength) {
+	return renderNodeTab(level, tabLength) + '<' + tag + '/>\n';
+}
+
+var renderNodeTab = function(level, tabLength) {
+	if(!level) return '';
+	return _.reduce(new Array(level), function(carry) {return carry + tabCharacter(tabLength)}, '');
+}
+
+var tabCharacter = function(tabLength) {
+	if(tabLength === '1') { return ' '; }
+
+	return Array(Number(tabLength)).join(' ');
 }
 
 var renderRowNode = function(row, sheet) {
 	var tag = (sheet.useCommonRowTag || !row.tag) ? sheet.commonRowTag : rowTag,
-		xml = renderNodeOpeningTag(tag, 1) + '\n';
+		xml = renderNodeOpeningTag(tag, 1, sheet.tabLength) + '\n';
+
+	if(row.deleted) {
+		return '';
+	}
 
 	xml += _.reduce(row.children, function(carry, cell, i) {
 		return carry + renderColNode(cell, sheet, i);
 	}, '');
 	
-	xml += renderNodeClosingTag(tag, 1);
+	xml += renderNodeClosingTag(tag, 1, sheet.tabLength);
 
 	return xml;
 }
@@ -149,65 +165,19 @@ var renderColNode = function(cell, sheet, n) {
 		content = cell.content.trim();
 
 	if(content === '' && sheet.useSelfClosingTags) {
-		return renderNodeSelfClosingTag(tag, 2);
+		return renderNodeSelfClosingTag(tag, 2, sheet.tabLength);
 	}
 
-	return renderNodeOpeningTag(tag, 2) + cell.content + renderNodeClosingTag(tag, 2, true);
+	return renderNodeOpeningTag(tag, 2, sheet.tabLength) + cell.content + renderNodeClosingTag(tag, 2, sheet.tabLength, true);
 }
 
-// var renderNode = function(node, level, colTags) {
-// 	if(node.deleted) return '';
-// 	var initial = '';
-// 	if(level === undefined) {
-// 		// root node
-// 		level = 0;
-// 	}
-// 	if(level === 0) {
-// 		initial = '\n';
-// 	}
-
-// 	return initial + renderNodeOpeningTag(node, level) + renderNodeContent(node, level, colTags) + renderNodeClosingTag(node, level, !_.isArray(node.children));
+// var updateAllColTags = function(newTag, sheetId) {
+// 	ractive.set('sheets.' + sheetId + '.colTags.*', newTag);
 // }
 
-// var renderNodeOpeningTag = function(node, level) {
-// 	return renderNodeTab(level) + '<' + node.tag + '>';
+// var updateAllRowTags = function(tag) {
+
 // }
-
-// var renderNodeClosingTag = function(node, level, noTab) {
-// 	return (noTab ? '' : renderNodeTab(level)) + '</' + node.tag + '>\n';
-// }
-
-// var renderNodeContent = function(node, level, colTags) {
-// 	var output = node.content || '';
-
-// 	if(_.isArray(node.children)) {
-// 		output += '\n' + _.reduce(node.children, function(carry, child, i) {
-// 			if(level === 1) {
-// 				child.tag = colTags[i];
-// 			}
-// 			return carry + renderNode(child, level + 1, colTags);
-// 		}, '');
-// 	}
-
-// 	return output;
-// }
-
-var renderNodeTab = function(level) {
-	if(!level) return '';
-	return _.reduce(new Array(level), function(carry) {return carry + tabCharacter()}, '');
-}
-
-var tabCharacter = function() {
-	return '  ';
-}
-
-// var updateAllColTags = function(tag, colIndex) {
-// 	ractive.set('data.rows.*.children.' + colIndex + '.tag', tag);
-// }
-
-var updateAllRowTags = function(tag) {
-
-}
 
 var getRowIdFromEvent = function(e) {
 	return e.index.r;
@@ -262,9 +232,10 @@ var initMain = function() {
   	}
 	});
 
-	// update col tag values in data when there are any changes to any column tags
-	// ractive.observe('sheets.*.colTags.*', function(newValue, oldValue, keypath) {
-	// 	updateAllColTags(newValue, _.last(keypath.split('.')));
+	// update col tag values when common tag is changed
+	// ractive.observe('sheets.*.commonColTag', function(newValue, oldValue, keypath) {
+	// 	if()
+	// 	updateAllColTags(newValue, _.first(_.last(keypath.split('sheets.')).split('.')));
 	// }, {init: false});
 
 	// update data

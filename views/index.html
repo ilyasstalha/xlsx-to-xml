@@ -88,8 +88,12 @@
 			  {{#useCommonColTag}}
 					<input type="text" class="u-full-width" value="{{commonColTag}}"/>
 				{{/useCommonColTag}}
-		    <input type="checkbox" checked="{{useSelfClosingTags}}">
-		    <span class="label-body">Use self-closing tags</span>
+				<label>
+			    <input type="checkbox" checked="{{useSelfClosingTags}}">
+			    <span class="label-body">Use self-closing tags</span>
+		  	</label>
+				<label>Tab Size</label>
+				<input type="text" class="u-full-width" value="{{tabLength}}"/>
 			</form>
 		</script>
 
