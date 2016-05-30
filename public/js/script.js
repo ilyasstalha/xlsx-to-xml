@@ -192,7 +192,7 @@ var initMain = function() {
 	  el: '#container',
 	  template: '#template-main',
 	  data: {
-	  	statusMessage: '',
+	  	statusMessage: 'waiting for file selection...',
 	  	processing: false,
   		sheets: {},
   		tagsGlobal: {

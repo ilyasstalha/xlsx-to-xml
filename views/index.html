@@ -20,39 +20,43 @@
 		<script type="text/javascript" src="js/vendor/xml2json.min.js"></script>
 
 		<script type="template/javascript" id="template-main">
-			<div class="row">
-				<div class="six columns">
-					<form>
-						<label for='file_input'>Choose file</label>
-						<input class="u-full-width" type='file' name='file_input' id="input" on-change="chooseFile" />
-						{{#processing}}
-							<i class="fa fa-circle-o-notch fa-spin loading"></i>
-						{{/processing}}
-						{{statusMessage}}
-					</form>
+			<div id="top-bar">
+				<div class="row" id="file-input-container">
+					<div class="six columns">
+						<form id="file-input-form">
+							<input class="u-full-width" type='file' on-change="chooseFile" />
+							{{#processing}}
+								<i class="fa fa-circle-o-notch fa-spin loading"></i>
+							{{/processing}}
+						</form>
+					</div>
+					<div class="six columns">
+							Status: {{statusMessage}}
+					</div>
+				</div>
+
+				<div class="row" id="sheets-nav">
+					{{#sheets:i}}
+						<button class="button{{#isVisible}}-primary{{/isVisible}}" on-click="switchSheet:{{i}}">{{name}}</button>
+					{{/sheets}}
 				</div>
 			</div>
 
-			<div class="row" id="sheets-nav">
-				{{#sheets:i}}
-					<button class="button{{#isVisible}}-primary{{/isVisible}}" on-click="switchSheet:{{i}}">{{name}}</button>
+			<div id="sheets-container">
+				{{#sheets:id}}
+					{{#isVisible}}
+						{{>sheet}}
+					{{/isVisible}}
 				{{/sheets}}
 			</div>
-
-			{{#sheets:id}}
-				{{#isVisible}}
-					{{>sheet}}
-				{{/isVisible}}
-			{{/sheets}}
 		</script>
 
 		<script id="sheet" type="template/javascript">
-			<h4>Sheet: {{name}}</h4>
 			<div class="sheet" id="sheet-{{id}}">
 				<div class="row">
 					<div class="six columns settings-form-container">
 					{{#isVisible}}
-						<button class="button-primary" on-click="toggleSettingsForm">Conversion settings</button>
+						<button class="{{#showSettingsForm}}button-primary{{/showSettingsForm}}" on-click="toggleSettingsForm">Conversion settings</button>
 						{{#showSettingsForm}}
 							{{>settings-form}}
 						{{/showSettingsForm}}
@@ -114,7 +118,7 @@
 					<th></th>
 				</tr>
 				{{#rows:r}}
-					<tr data-deleted="{{deleted ? 'true' : 'false'}}" class="{{deleted ? 'deleted' : ''}}">
+					<tr class="{{deleted ? 'deleted' : ''}}">
 						<th>
 							{{#if !deleted}}
 								{{#useCommonRowTag}}
@@ -130,11 +134,11 @@
 							<td>{{.content}}</td>
 						{{/children}}
 						<td class="actions">
-							<a class="button" on-click="useRowForColNodeNames: {{.}}">use row for node names</a>
+							<a class="button button-primary button-icon" on-click="useRowForColNodeNames: {{.}}"><i class="fa fa-fw fa-table fa-2x"></i></a>
 							{{#if deleted}}
-								<a class="button" on-click="unDeleteRow: {{.}}">restore row</a>
+								<a class="button button-primary button-icon" on-click="unDeleteRow: {{.}}"><i class="fa fa-fw fa-undo fa-2x"></i></a>
 							{{else}}
-								<a class="button" on-click="deleteRow: {{.}}">delete row</a>
+								<a class="button button-primary button-icon" on-click="deleteRow: {{.}}"><i class="fa fa-fw fa-trash fa-2x"></i></a>
 							{{/if}}
 						</td>
 					</tr>
