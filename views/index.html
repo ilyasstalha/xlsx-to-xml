@@ -12,7 +12,9 @@
 
 		</div>
 
-		<script type="text/javascript" src="js/vendor/xlsx.core.min.js"></script>
+		<script type="text/javascript" src="js/vendor/jszip.js"></script>
+		<script type="text/javascript" src="js/vendor/cpexcel.js"></script>
+		<script type="text/javascript" src="js/vendor/xlsx.js"></script>
 		<script type="text/javascript" src="js/vendor/ractive-0.7.3.min.js"></script>
 		<script type="text/javascript" src="js/vendor/underscore-1.8.3.min.js"></script>
 		<script type="text/javascript" src="js/vendor/xml2json.min.js"></script>
@@ -20,119 +22,133 @@
 		<script type="template/javascript" id="template-main">
 			<div class="row">
 				<div class="six columns">
-					{{>choose-file}}
+					<form>
+						<label for='file_input'>Choose file</label>
+						<input class="u-full-width" type='file' name='file_input' id="input" on-change="chooseFile" />
+						{{#processing}}
+							<i class="fa fa-circle-o-notch fa-spin loading"></i>
+						{{/processing}}
+						{{statusMessage}}
+					</form>
 				</div>
 			</div>
 
-			<div class="row">
-				<div class="six columns" id="convert-form-container">
-				{{#if dataSet}}
-					<button class="button=primary" on-click="toggleConvertForm">Specify node tags</button>
-					{{#if showConvertForm}}
-						{{>convert-form}}
-					{{/if}}
-				{{/if}}
-				</div>
-			</div>
-			<div class="row">
-				<div class="six columns" id="request-status">
-					{{#if processing}}
-						<i class="fa fa-circle-o-notch fa-spin loading"></i>
-					{{/if}}
-					{{statusMessage}}
-				</div>
+			<div class="row" id="sheets-nav">
+				{{#sheets:i}}
+					<button class="button{{#isVisible}}-primary{{/isVisible}}" on-click="switchSheet:{{i}}">{{name}}</button>
+				{{/sheets}}
 			</div>
 
-			<div class="row" id="data-table-container">
-				{{>data-table}}
-			</div>
+			{{#sheets:id}}
+				{{#isVisible}}
+					{{>sheet}}
+				{{/isVisible}}
+			{{/sheets}}
+		</script>
 
-			<div class="row" id="data-xml-container">
-				{{>xml}}
+		<script id="sheet" type="template/javascript">
+			<h4>Sheet: {{name}}</h4>
+			<div class="sheet" id="sheet-{{id}}">
+				<div class="row">
+					<div class="six columns settings-form-container">
+					{{#isVisible}}
+						<button class="button-primary" on-click="toggleSettingsForm">Conversion settings</button>
+						{{#showSettingsForm}}
+							{{>settings-form}}
+						{{/showSettingsForm}}
+					{{/isVisible}}
+					</div>
+				</div>
+				<div class="row data-table-container">
+					{{>data-table}}
+				</div>
+
+				<div class="row data-xml-container">
+					{{>xml}}
+				</div>
+
 			</div>
 		</script>
 
-		<script id="choose-file" type="template/javascript">
-			<form>
-				<label for='file_input'>Choose file</label>
-				<input class="u-full-width" type='file' name='file_input' id="input" on-change="chooseSheet" />
-			</form>
-		</script>
-
-		<script id="convert-form" type="template/javascript">
-			<form>
-				<input type="hidden" name="{{data}}"/>
+		<script id="settings-form" type="template/javascript">
+			<form class="settings-form">
 				<label>Root node name</label>
-				<input type="text" class="u-full-width" value="{{data.tags.root}}"/>
+				<input type="text" class="u-full-width" value="{{rootTag}}"/>
 				<label>
-			    <input type="checkbox" checked="{{data.tags.useCommon.row}}">
+			    <input type="checkbox" checked="{{useCommonRowTag}}">
 			    <span class="label-body">Use common row node name</span>
 			  </label>
-			  {{#if data.tags.useCommon.row}}
-					<input type="text" class="u-full-width" value="{{data.tags.common.row}}"/>
-				{{/if}}
+			  {{#useCommonRowTag}}
+					<input type="text" class="u-full-width" value="{{commonRowTag}}"/>
+				{{/useCommonRowTag}}
 				<label>
-			    <input type="checkbox" checked="{{data.tags.useCommon.col}}">
+			    <input type="checkbox" checked="{{useCommonColTag}}">
 			    <span class="label-body">Use common column node name</span>
 			  </label>
-			  {{#if data.tags.useCommon.col}}
-					<input type="text" class="u-full-width" value="{{data.tags.common.col}}"/>
-				{{/if}}
+			  {{#useCommonColTag}}
+					<input type="text" class="u-full-width" value="{{commonColTag}}"/>
+				{{/useCommonColTag}}
+				<label>
+			    <input type="checkbox" checked="{{useSelfClosingTags}}">
+			    <span class="label-body">Use self-closing tags</span>
+		  	</label>
+				<label>Tab Size</label>
+				<input type="text" class="u-full-width" value="{{tabLength}}"/>
 			</form>
 		</script>
 
 		<script type="template/javascript" id="data-table">
-			<table>
+			<table class="data-table">
 				<tr>
 					<th></th>
-					{{#each data.tags.cols}}
+					{{#colTags}}
 						<th>
-							{{#data.tags.useCommon.col}}
-								{{data.tags.common.col}}
-							{{else}}
+							{{#useCommonColTag}}
+								{{commonColTag}}
+							{{/useCommonColTag}}
+							{{^useCommonColTag}}
 								<input type="text" value="{{this}}"  class="col-node-name" />
-							{{/if}}
+							{{/useCommonColTag}}
 						</th>
-					{{/each}}
+					{{/colTags}}
 					<th></th>
 				</tr>
-				{{#each data.rows:r}}
+				{{#rows:r}}
 					<tr data-deleted="{{deleted ? 'true' : 'false'}}" class="{{deleted ? 'deleted' : ''}}">
 						<th>
 							{{#if !deleted}}
-								{{#data.tags.useCommon.row}}
-									{{data.tags.common.row}}
-								{{else}}
+								{{#useCommonRowTag}}
+									{{commonRowTag}}
+								{{/useCommonRowTag}}
+								{{^useCommonRowTag}}
 									<input type="text" class="row-node-name" value="{{this.tag}}" />
-								{{/if}}
+								{{/useCommonRowTag}}
 							{{/if}}
 						</th>
 
-						{{#each this.children}}
-							<td>{{this.content}}</td>
-						{{/each}}
+						{{#children:i}}
+							<td>{{.content}}</td>
+						{{/children}}
 						<td class="actions">
-							<a class="button" on-click="useRowForColNodeNames(r)">use row for node names</a>
+							<a class="button" on-click="useRowForColNodeNames: {{.}}">use row for node names</a>
 							{{#if deleted}}
-								<a class="button" on-click="unDeleteRow(r)">restore row</a>
+								<a class="button" on-click="unDeleteRow: {{.}}">restore row</a>
 							{{else}}
-								<a class="button" on-click="deleteRow(r)">delete row</a>
+								<a class="button" on-click="deleteRow: {{.}}">delete row</a>
 							{{/if}}
 						</td>
 					</tr>
-				{{/each}}
+				{{/rows}}
 			</table>
 		</script>
 
 		<script type="template/javascript" id="xml">
 			<pre><code>
-				{{#if data.rows}}
-					{{outputNode({tag: data.tags.root, children: data.rows}) }}
+				{{#if rows}}
+					{{outputXML(.)}}
 				{{/if}}
 			</code></pre>
 		</script>
-
-
 
 		<script type="text/javascript" src="js/script.js"></script>
 </html>

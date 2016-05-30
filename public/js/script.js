@@ -1,195 +1,190 @@
-var ractive;
-
-var initConvertForm = function() {
-	convertForm =  new Ractive({
-	  el: '#convert-form-container',
-	  template: '#convert-form',
-	  data: {display: 'none', values: {
-	  	nodeNameRoot: 'root',
-	  	useCommonRowNodeName: true,
-	  	nodeNameRowCommon: 'row',
-	  	useCommonColNodeName: true,
-	  	nodeNameColCommon: 'column'
-	  }}
-	});
-
-}
+var ractive,
+	visibleSheet;
 
 var readFile = function(file) {
   var reader = new FileReader();
 
-  reader.onload = function(e) {
-    var workbook = XLSX.read(e.target.result, {type: 'binary'});
-
-    setData(extractWorkbookData(workbook), 'File parsed!');
-  };
+  reader.onload = processLoadedFile;
   reader.readAsBinaryString(file);
 }
 
-var extractWorkbookData = function(workbook) {
-	if(!_.isArray(workbook.SheetNames) || !workbook.SheetNames.length) {
-		return false;
-	}
+var processLoadedFile = function(e) {
+  var workbook = XLSX.read(e.target.result, {type: 'binary'});
 
-	// we're only processing the first sheet at the moment
-	var sheetOne = workbook.Sheets[workbook.SheetNames[0]],
-		json = XLSX.utils.sheet_to_json(sheetOne);
+  if(!_.isArray(workbook.SheetNames) || !workbook.SheetNames.length) {
+  	setMessage('File parsed: the workbook has no sheets!');
+  	return;
+  }
 
-	return reformatXslxJson(json);
-}
+  resetSheets();
 
-var reformatXslxJson = function(json) {
-	if(!_.isArray(json) || !json.length) {
-		return [];
-	}
-
-	var rowTag = ractive.get('data.tags.common.row');
-
-	var mapRow = function(row) {
-		return {
-			tag: rowTag,
-			children: _.map(row, function(cell, key) {
-				return {
-					content: cell,
-					attrs: {}
-				}
-			})
-		}
-	};
-
-	return [mapRow(_.keys(json[0]))].concat( _.map(json, mapRow));
-}
-
-
-var convertData = function(e) {
-	var x2js = new X2JS({
-      arrayAccessFormPaths : [
-        "something.row"
-      ]
-    }),
-		xmlStr = generateXML();
-
-}
-
-var generateXML = function() {
-	return convertNode(formatDataForConversion())
-}
-
-var formatDataForConversion = function() {
-	var rootNodeTag = ractive.get('data.tags.root'),
-		commonRowTag = ractive.get('data.tags.useCommon.row') ? ractive.get('data.tags.common.row') : false,
-		colTags = ractive.get('data.tags.useCommon.col') ? ractive.get('data.tags.common.col') : ractive.get('data.tags.cols'),
-		obj = {};
-
-	obj[rootNodeTag] = _.filter(_.map(ractive.get('data.rows'), function(rowData, i) {
-		if(rowData.deleted) return false;
-		debugger;
-		return formatRowDataForConversion(rowData, commonRowTag || rowData.tag, colTags);
-	}));
-
-	return obj;
-}
-
-var formatRowDataForConversion = function(rowData, tagName, childTagNames) {
-	return {
-		tag: tagName,
-		attrs: formatNodeAttrs(rowData),
-		content: formatRowContent(rowData, childTagNames)
-	}
-}
-
-var formatNodeAttrs = function(nodeData) {
-	return {};
-}
-
-var formatRowContent = function(rowData, keys) {
-	if(_.isArray(keys)) {
-		return _.map(keys, function(key, i) {
-			return {
-				tag: key,
-				content: rowData.values[i]
-			}
+  if(workbook.SheetNames) {
+		_.each(workbook.SheetNames, function(sheetName, i) {
+			addSheet(workbook.Sheets[sheetName], sheetName, i === 0);
 		});
-	}
+  }
 
-	return _.map(rowData.values, function(value) {
-		return {
-			tag: keys,
-			content: value
-		};
-	});
+  finishedProcessing('Workbook processed');
 }
 
-var setData = function(data, message) {
+var resetSheets = function() {
+	ractive.set('sheets', []);
+	visibleSheet = 0;
+}
+
+var addSheet = function(worksheet, name, isVisible) {
+	var sheet = new Sheet(name, worksheet, ractive.get('tagsGlobal.row'), XLSX);
+
+	setSheetData(name, sheet.json(), isVisible);
+}
+
+var finishedProcessing = function(message) {
+	ractive.set({
+		statusMessage: message,
+		processing: false
+	})
+}
+
+var switchSheet = function(id) {
+	ractive.set('sheets.' + visibleSheet + '.isVisible', false);
+	ractive.set('sheets.' + id + '.isVisible', true);
+	visibleSheet = id;
+}
+
+var setSheetData = function(sheetName, data, isVisible) {
 	if(!data) data = {};
 
-	ractive.set({
-		'data.rows': data,
-		'data.tags.cols': new Array(_.max(_.pluck(_.pluck(data, 'children'), 'length'))).fill(ractive.get('data.tags.common.col')),
-		processing: false,
-		statusMessage: message,
-		dataSet: true
+	var setDataObj = {},
+		commonColTag = ractive.get('tagsGlobal.col'),
+		commonRowTag = ractive.get('tagsGlobal.row');
+
+	setDataObj['name'] = sheetName;
+	setDataObj['rows'] = data;
+	setDataObj['showSettingsForm'] = false;
+	setDataObj['isVisible'] = isVisible;
+	setDataObj['useSelfClosingTags'] = true;
+	setDataObj['tabLength'] = 4;
+	setDataObj['useCommonColTag'] = true;
+	setDataObj['useCommonRowTag'] = true;
+	setDataObj['commonColTag'] = commonColTag;
+	setDataObj['commonRowTag'] = commonRowTag;
+	setDataObj['rootTag'] = ractive.get('tagsGlobal.root');
+	setDataObj['numberOfCols'] = _.isEmpty(data) ? 0 : _.max(_.pluck(_.pluck(data, 'children'), 'length'));
+	setDataObj['colTags'] = setDataObj.numberOfCols ? new Array(setDataObj.numberOfCols).fill(commonColTag) : [];
+
+	ractive.push('sheets', setDataObj);
+}
+
+var setMessage = function(message) {
+	ractive.set('statusMessage', message);
+}
+
+var setColNodeNames = function(nodeNames, sheetId) {
+	var setObj = {};
+
+	nodeNames = _.map(nodeNames, function(nodeName) {
+		return formatNodeName(nodeName, 'col');
 	});
+
+	setObj['sheets.' + sheetId + '.colTags'] = nodeNames;
+	setObj['sheets.' + sheetId + '.useCommonColTag'] = false;
+
+	ractive.set(setObj);
 }
 
-var setColNodeNames = function(nodeNames) {
-	ractive.set({
-		'data.tags.cols': nodeNames,
-		'data.tags.useCommon.col': false
-	});
+var formatNodeName = function(name, rowOrCol) {
+	if(!_.isString(name)) { return name };
+
+	name = name.trim();
+
+	if(name === '') { return ractive.get('tagsGlobal.' + rowOrCol) }
+
+	return name.replace(/\s/g, '_').toLowerCase();
 }
 
-var setDeleteRow = function(row, value) {
-	ractive.set('data.rows.' + row + '.deleted', value);
+var setDeleteRow = function(row, sheet, value) {
+	ractive.set('sheets.' + sheet + '.rows.' + row + '.deleted', value);
 }
 
+var renderSheetXML = function(sheet) {
+	var xml = '\n' + renderNodeOpeningTag(sheet.rootTag, 0, sheet.tabLength) + '\n';
 
-var renderNode = function(node, level) {
-	if(node.deleted) return '';
-	var initial = '';
-	if(level === undefined) {
-		// root node
-		level = 0;
-		initial = '\n';
-	}
-	return initial + renderNodeOpeningTag(node, level) + renderNodeContent(node, level) + renderNodeClosingTag(node, level, !_.isArray(node.children));
-}
-
-var renderNodeOpeningTag = function(node, level) {
-	return renderNodeTab(level) + '<' + node.tag + '>';
-}
-
-var renderNodeClosingTag = function(node, level, noTab) {
-	return (noTab ? '' : renderNodeTab(level)) + '</' + node.tag + '>\n';
-}
-
-var renderNodeContent = function(node, level) {
-	var output = node.content || '';
-
-	if(_.isArray(node.children)) {
-		output += '\n' + _.reduce(node.children, function(carry, child) {
-			return carry + renderNode(child, level + 1);
+	if(sheet.rows) {
+		xml += _.reduce(sheet.rows, function(carry, row) {
+			return carry + renderRowNode(row, sheet);
 		}, '');
 	}
 
-	return output;
+	xml += '\n' + renderNodeClosingTag(sheet.rootTag, 0, sheet.tabLength);
+
+	return  xml;
 }
 
-var renderNodeTab = function(level) {
+var renderNodeOpeningTag = function(tag, level, tabLength) {
+	return renderNodeTab(level, tabLength) + '<' + tag + '>';
+}
+
+var renderNodeClosingTag = function(tag, level, tabLength, noTab) {
+	return (noTab ? '' : renderNodeTab(level, tabLength)) + '</' + tag + '>\n';
+}
+
+var renderNodeSelfClosingTag = function(tag, level, tabLength) {
+	return renderNodeTab(level, tabLength) + '<' + tag + '/>\n';
+}
+
+var renderNodeTab = function(level, tabLength) {
 	if(!level) return '';
-	return _.reduce(new Array(level), function(carry) {return carry + tabCharacter()}, '');
+	return _.reduce(new Array(level), function(carry) {return carry + tabCharacter(tabLength)}, '');
 }
 
-var tabCharacter = function() {
-	return '  '
+var tabCharacter = function(tabLength) {
+	if(tabLength === '1') { return ' '; }
+
+	return Array(Number(tabLength)).join(' ');
 }
 
-var updateAllColTags = function(tag, colIndex) {
-	ractive.set('data.rows.*.children.' + colIndex + '.tag', tag);
+var renderRowNode = function(row, sheet) {
+	var tag = (sheet.useCommonRowTag || !row.tag) ? sheet.commonRowTag : rowTag,
+		xml = renderNodeOpeningTag(tag, 1, sheet.tabLength) + '\n';
+
+	if(row.deleted) {
+		return '';
+	}
+
+	xml += _.reduce(row.children, function(carry, cell, i) {
+		return carry + renderColNode(cell, sheet, i);
+	}, '');
+	
+	xml += renderNodeClosingTag(tag, 1, sheet.tabLength);
+
+	return xml;
 }
 
-var updateAllRowTags = function(tag) {
+var renderColNode = function(cell, sheet, n) {
+	var tag = sheet.useCommonColTag ? sheet.commonColTag : sheet.colTags[n],
+		content = cell.content.trim();
 
+	if(content === '' && sheet.useSelfClosingTags) {
+		return renderNodeSelfClosingTag(tag, 2, sheet.tabLength);
+	}
+
+	return renderNodeOpeningTag(tag, 2, sheet.tabLength) + cell.content + renderNodeClosingTag(tag, 2, sheet.tabLength, true);
+}
+
+// var updateAllColTags = function(newTag, sheetId) {
+// 	ractive.set('sheets.' + sheetId + '.colTags.*', newTag);
+// }
+
+// var updateAllRowTags = function(tag) {
+
+// }
+
+var getRowIdFromEvent = function(e) {
+	return e.index.r;
+}
+
+var getSheetIdFromEvent = function(e) {
+	return e.index.id;
 }
 
 var initMain = function() {
@@ -199,59 +194,83 @@ var initMain = function() {
 	  data: {
 	  	statusMessage: '',
 	  	processing: false,
-	  	converting: false,
-	  	dataSet: false,
-	  	showConvertForm: false,
-	  	showXml: false,
-	  	data: {
-	  		rows: [],
-	  		tags: {
-	  			common: {
-		  			row: 'row',
-		  			col: 'cell'
-	  			},
-	  			root: 'root',
-	  			cols: [],
-	  			useCommon: {
-	  				row: true,
-	  				col: true
-	  			}
-	  		}
+  		sheets: {},
+  		tagsGlobal: {
+  			row: 'row',
+  			col: 'cell',
+  			root: 'root'
 	  	},
-	  	outputNode: renderNode,
-	  },
-  	useRowForColNodeNames: function(row) {
-  		setColNodeNames(_.pluck(this.get('data.rows.' + row + '.children'), 'content'));
-  		setDeleteRow(row, true);
-  	},
-  	deleteRow: function(row) {
-  		setDeleteRow(row, true);
-  	},
-  	unDeleteRow: function(row) {
-  		setDeleteRow(row, false);
-  	},
-  	longestRow: function() {
-  		return _.max(_.map(this.get('data.rows'), function(row) {return row.length}));
-  	}
+	  	outputXML: renderSheetXML,
+	  	visibleSheet: null
+	  }
 	});
 
 	ractive.on({
-		chooseSheet: function(e) {
+		chooseFile: function(e) {
 			ractive.set('processing', true);
 			ractive.set('statusMessage', 'processing new file...');
 
 			readFile(e.node.files[0]);
 		},
-		toggleConvertForm: function() {
-			ractive.toggle('showConvertForm');
-		}
+		toggleSettingsForm: function(e) {
+			ractive.toggle('sheets.' + getSheetIdFromEvent(e) + '.showSettingsForm');
+		},
+		switchSheet: function(e, i) {
+			switchSheet(i);
+		},
+		useRowForColNodeNames: function(e, row) {
+			var sheetId = e.index.id,
+				rowId = e.index.r;
+			setColNodeNames(_.pluck(row.children, 'content'), sheetId);
+			setDeleteRow(rowId, sheetId, true);
+		},
+		deleteRow: function(e, row) {
+			setDeleteRow(getRowIdFromEvent(e), getSheetIdFromEvent(e), true);
+		},
+  	unDeleteRow: function(e, row) {
+  		setDeleteRow(getRowIdFromEvent(e), getSheetIdFromEvent(e), false);
+  	}
 	});
 
-	ractive.observe('data.tags.cols.*', function(newValue, oldValue, keypath) {
-		updateAllColTags(newValue, _.last(keypath.split('.')));
-	}, {init: false});
+	// update col tag values when common tag is changed
+	// ractive.observe('sheets.*.commonColTag', function(newValue, oldValue, keypath) {
+	// 	if()
+	// 	updateAllColTags(newValue, _.first(_.last(keypath.split('sheets.')).split('.')));
+	// }, {init: false});
+
+	// update data
+	// ractive
 
 
+}
+
+var Sheet = function(id, worksheet, rowTag, XLSX) {
+
+	var extracted = function(json) {
+		if(!_.isArray(json) || !json.length) {
+			return {};
+		}
+
+		var mapRow = function(row) {
+			return {
+				tag: rowTag,
+				children: _.map(row, function(cell, key) {
+					return {
+						content: cell,
+						attrs: {}
+					}
+				})
+			}
+		};
+
+		return [mapRow(_.keys(json[0]))].concat( _.map(json, mapRow));
+	}(XLSX.utils.sheet_to_json(worksheet, {blankValue: ''}));
+
+	return {
+		json: function() {
+			return extracted;
+		}
+	}
 }
 
 

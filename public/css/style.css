@@ -5,6 +5,13 @@ button.button-primary:disabled {
     cursor: default;
 }
 
+#sheets-nav button {
+  margin-left: -1px;
+}
+#sheets-nav button:first-of-type {
+	margin-left: 0;
+}
+
 table {
 	border-collapse: collapse;
 }
@@ -26,22 +33,18 @@ table .button {
 	margin-bottom: 0;
 }
 
-#data table {
+.data-table {
 	table-layout: fixed;
 }
 
-#data table td {
+.data-table td {
 	height: 10px;
 	width: 40px;
 	overflow: hidden;
 }
 
-#data table .col-node-name {
-	width: 100%;
-}
-
-#data table tr.deleted td, 
-#data table tr.deleted th {
+.data-table tr.deleted td, 
+.data-table tr.deleted th {
 	background-color: rgba(123,13,13,0.5);
 	color: #9E5151;
 	border-color: rgba(123,13,13,0.5);
