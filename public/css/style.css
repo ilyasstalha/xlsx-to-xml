@@ -1,15 +1,39 @@
-button:disabled,
-button.button-primary:disabled {
-    background: #999;
-    color: #555;
-    cursor: default;
+body {
+	margin: 0;
+}
+
+#top-bar {
+	position: fixed;
+	width: 100%;
+  background-color: white;
+  border-bottom: 1px solid #ccc;
+}
+#top-bar .row {
+	padding: 5px;
+}
+
+#file-input-container {
+	height: 25px;
+}
+
+#file-input-form, #file-input-form input {
+	margin-bottom: 0;
 }
 
 #sheets-nav button {
   margin-left: -1px;
+  margin-bottom: 0;
 }
 #sheets-nav button:first-of-type {
 	margin-left: 0;
+}
+
+#sheets-container {
+	padding-top: 100px;
+}
+
+.settings-form-container {
+	padding: 0 5px;
 }
 
 table {
@@ -35,6 +59,7 @@ table .button {
 
 .data-table {
 	table-layout: fixed;
+	width: 100%;
 }
 
 .data-table td {
@@ -48,4 +73,15 @@ table .button {
 	background-color: rgba(123,13,13,0.5);
 	color: #9E5151;
 	border-color: rgba(123,13,13,0.5);
+}
+
+button:disabled,
+button.button-primary:disabled {
+    background: #999;
+    color: #555;
+    cursor: default;
+}
+
+.button-icon {
+	padding: 5px;
 }
