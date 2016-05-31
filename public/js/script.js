@@ -144,7 +144,7 @@ var tabCharacter = function(tabLength) {
 }
 
 var renderRowNode = function(row, sheet) {
-	var tag = (sheet.useCommonRowTag || !row.tag) ? sheet.commonRowTag : rowTag,
+	var tag = (sheet.useCommonRowTag || !row.tag) ? sheet.commonRowTag : row.tag,
 		xml = renderNodeOpeningTag(tag, 1, sheet.tabLength) + '\n';
 
 	if(row.deleted) {
