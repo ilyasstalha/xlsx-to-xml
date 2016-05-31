@@ -57,6 +57,11 @@ table .button {
 	margin-bottom: 0;
 }
 
+.data-table-container button:first-of-type, 
+.xml-container button:first-of-type {
+	margin-left: 5px;
+}
+
 .data-table {
 	table-layout: fixed;
 	width: 100%;

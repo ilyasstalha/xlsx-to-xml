@@ -19,7 +19,7 @@
 		<script type="text/javascript" src="js/vendor/underscore-1.8.3.min.js"></script>
 		<script type="text/javascript" src="js/vendor/xml2json.min.js"></script>
 
-		<script type="template/javascript" id="template-main">
+		<script type="text/html" id="template-main">
 			<div id="top-bar">
 				<div class="row" id="file-input-container">
 					<div class="six columns">
@@ -51,7 +51,7 @@
 			</div>
 		</script>
 
-		<script id="sheet" type="template/javascript">
+		<script id="sheet" type="text/html">
 			<div class="sheet" id="sheet-{{id}}">
 				<div class="row">
 					<div class="six columns settings-form-container">
@@ -64,6 +64,7 @@
 					</div>
 				</div>
 				<div class="row data-table-container">
+					<button on-click="scrollToElement:{{'sheet-' + id + '-xml'}}">Go to XML</button>
 					{{>data-table}}
 				</div>
 
@@ -74,7 +75,7 @@
 			</div>
 		</script>
 
-		<script id="settings-form" type="template/javascript">
+		<script id="settings-form" type="text/html">
 			<form class="settings-form">
 				<label>Root node name</label>
 				<input type="text" class="u-full-width" value="{{rootTag}}"/>
@@ -101,8 +102,8 @@
 			</form>
 		</script>
 
-		<script type="template/javascript" id="data-table">
-			<table class="data-table">
+		<script type="text/html" id="data-table">
+			<table class="data-table" id="sheet-{{id}}-data-table">
 				<tr>
 					<th></th>
 					{{#colTags}}
@@ -134,11 +135,17 @@
 							<td>{{.content}}</td>
 						{{/children}}
 						<td class="actions">
-							<a class="button button-primary button-icon" on-click="useRowForColNodeNames: {{.}}"><i class="fa fa-fw fa-table fa-2x"></i></a>
+							<a class="button button-primary button-icon" on-click="useRowForColNodeNames: {{.}}" title="Use this row as column headers">
+								<i class="fa fa-fw fa-table fa-2x"></i>
+							</a>
 							{{#if deleted}}
-								<a class="button button-primary button-icon" on-click="unDeleteRow: {{.}}"><i class="fa fa-fw fa-undo fa-2x"></i></a>
+								<a class="button button-primary button-icon" on-click="unDeleteRow: {{.}}" title="Delete this row">
+									<i class="fa fa-fw fa-undo fa-2x"></i>
+								</a>
 							{{else}}
-								<a class="button button-primary button-icon" on-click="deleteRow: {{.}}"><i class="fa fa-fw fa-trash fa-2x"></i></a>
+								<a class="button button-primary button-icon" on-click="deleteRow: {{.}}" title="Restore this row">
+									<i class="fa fa-fw fa-trash fa-2x"></i>
+								</a>
 							{{/if}}
 						</td>
 					</tr>
@@ -146,12 +153,16 @@
 			</table>
 		</script>
 
-		<script type="template/javascript" id="xml">
-			<pre><code>
-				{{#if rows}}
-					{{outputXML(.)}}
-				{{/if}}
-			</code></pre>
+		<script type="text/html" id="xml">
+			<div class="xml-container" id="sheet-{{id}}-xml">
+				<button on-click="scrollToElement:{{'sheet-' + id + '-data-table'}}">Go to top of data table</button>
+
+				<pre><code>
+					{{#if rows}}
+						{{outputXML(.)}}
+					{{/if}}
+				</code></pre>
+			</div>
 		</script>
 
 		<script type="text/javascript" src="js/script.js"></script>

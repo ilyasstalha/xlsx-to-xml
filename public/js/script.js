@@ -229,7 +229,14 @@ var initMain = function() {
 		},
   	unDeleteRow: function(e, row) {
   		setDeleteRow(getRowIdFromEvent(e), getSheetIdFromEvent(e), false);
-  	}
+  	},
+		scrollToElement: function(e, elementId) {
+			var element = document.getElementById(elementId);
+
+			if(element) {
+				element.scrollIntoView();
+			}
+		}
 	});
 
 	// update col tag values when common tag is changed
