@@ -90,3 +90,12 @@ button.button-primary:disabled {
 .button-icon {
 	padding: 5px;
 }
+
+.button-icon-text span {
+	float: left;
+  margin-right: 6px;
+}
+
+.button-icon-text .fa-2x {
+	margin-top: 8px;
+}
