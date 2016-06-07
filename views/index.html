@@ -17,7 +17,6 @@
 		<script type="text/javascript" src="js/vendor/xlsx.js"></script>
 		<script type="text/javascript" src="js/vendor/ractive-0.7.3.min.js"></script>
 		<script type="text/javascript" src="js/vendor/underscore-1.8.3.min.js"></script>
-		<script type="text/javascript" src="js/vendor/xml2json.min.js"></script>
 
 		<script type="text/html" id="template-main">
 			<div id="top-bar">
@@ -142,11 +141,11 @@
 								<i class="fa fa-fw fa-table fa-2x"></i>
 							</a>
 							{{#if deleted}}
-								<a class="button button-primary button-icon" on-click="unDeleteRow: {{.}}" title="Delete this row">
+								<a class="button button-primary button-icon" on-click="unDeleteRow: {{.}}" title="Restore this row">
 									<i class="fa fa-fw fa-undo fa-2x"></i>
 								</a>
 							{{else}}
-								<a class="button button-primary button-icon" on-click="deleteRow: {{.}}" title="Restore this row">
+								<a class="button button-primary button-icon" on-click="deleteRow: {{.}}" title="Delete this row">
 									<i class="fa fa-fw fa-trash fa-2x"></i>
 								</a>
 							{{/if}}
