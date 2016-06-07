@@ -21,11 +21,27 @@ body {
 }
 
 #sheets-nav button {
+	position: relative;
+  margin-bottom: 0;
+}
+
+.nav-bar button {
   margin-left: -1px;
   margin-bottom: 0;
 }
-#sheets-nav button:first-of-type {
+
+.nav-bar button:first-of-type {
 	margin-left: 0;
+}
+
+.nav-bar button:not(:last-of-type) {
+	border-bottom-right-radius: 0;
+	border-top-right-radius: 0;
+}
+
+.nav-bar button:not(:first-of-type) {
+	border-bottom-left-radius: 0;
+	border-top-left-radius: 0;
 }
 
 #sheets-container {
@@ -34,6 +50,19 @@ body {
 
 .settings-form-container {
 	padding: 0 5px;
+}
+
+.settings-form {
+  position: absolute;
+  background: #eee;
+  padding: 10px 30px;
+  box-shadow: 0 0 2px #666;
+}
+
+button .settings-form {
+	left: 0;
+  color: initial;
+  text-align: initial;
 }
 
 table {

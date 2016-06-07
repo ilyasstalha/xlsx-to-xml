@@ -34,10 +34,18 @@
 					</div>
 				</div>
 
-				<div class="row" id="sheets-nav">
-					{{#sheets:i}}
-						<button class="button{{#isVisible}}-primary{{/isVisible}}" on-click="switchSheet:{{i}}">{{name}}</button>
-					{{/sheets}}
+				<div class="row">
+					<div class="nav-bar" id="sheets-nav">
+						{{#sheets:i}}
+							<button class="button{{#isVisible}}-primary icon-button-text{{/isVisible}}" on-click="navButtonPress:{{i}}">
+								{{name}}
+								{{#isVisible}}<i class="fa fa-angle-{{#showSettingsForm}}up{{/showSettingsForm}}{{^showSettingsForm}}down{{/showSettingsForm}} fa-2x"></i>{{/isVisible}}
+								{{#showSettingsForm}}
+									{{>settings-form}}
+								{{/showSettingsForm}}
+							</button>
+						{{/sheets}}
+					</div>
 				</div>
 			</div>
 
@@ -54,19 +62,14 @@
 			<div class="sheet" id="sheet-{{id}}">
 				<div class="row">
 					<div class="six columns settings-form-container">
-					{{#isVisible}}
-						<button class="{{#showSettingsForm}}button-primary{{/showSettingsForm}} button-icon-text" on-click="toggleSettingsForm">
-							<span>Conversion settings</span>
-							<i class="fa fa-cog fa-2x"></i>
-						</button>
-						{{#showSettingsForm}}
-							{{>settings-form}}
-						{{/showSettingsForm}}
-					{{/isVisible}}
+						
 					</div>
 				</div>
 				<div class="row data-table-container">
-					<button on-click="scrollToElement:{{'sheet-' + id + '-xml'}}">Go to XML</button>
+					<button class="button-icon-text" on-click="scrollToElement:{{'sheet-' + id + '-xml'}}">
+							<span>Go to XML</span>
+							<i class="fa fa-hand-o-down fa-2x"></i>
+					</button>
 					{{>data-table}}
 				</div>
 
@@ -78,30 +81,32 @@
 		</script>
 
 		<script id="settings-form" type="text/html">
-			<form class="settings-form">
-				<label>Root node name</label>
-				<input type="text" class="u-full-width" value="{{rootTag}}"/>
-				<label>
-			    <input type="checkbox" checked="{{useCommonRowTag}}">
-			    <span class="label-body">Use common row node name</span>
-			  </label>
-			  {{#useCommonRowTag}}
-					<input type="text" class="u-full-width" value="{{commonRowTag}}"/>
-				{{/useCommonRowTag}}
-				<label>
-			    <input type="checkbox" checked="{{useCommonColTag}}">
-			    <span class="label-body">Use common column node name</span>
-			  </label>
-			  {{#useCommonColTag}}
-					<input type="text" class="u-full-width" value="{{commonColTag}}"/>
-				{{/useCommonColTag}}
-				<label>
-			    <input type="checkbox" checked="{{useSelfClosingTags}}">
-			    <span class="label-body">Use self-closing tags</span>
-		  	</label>
-				<label>Tab Size</label>
-				<input type="text" class="u-full-width" value="{{tabLength}}"/>
-			</form>
+			<div class="settings-form" intro="slideDown" outro="slideDown">
+				<form>
+					<label>Root node name</label>
+					<input type="text" class="u-full-width" value="{{rootTag}}"/>
+					<label>
+				    <input type="checkbox" checked="{{useCommonRowTag}}">
+				    <span class="label-body">Use common row node name</span>
+				  </label>
+				  {{#useCommonRowTag}}
+						<input type="text" class="u-full-width" value="{{commonRowTag}}"/>
+					{{/useCommonRowTag}}
+					<label>
+				    <input type="checkbox" checked="{{useCommonColTag}}">
+				    <span class="label-body">Use common column node name</span>
+				  </label>
+				  {{#useCommonColTag}}
+						<input type="text" class="u-full-width" value="{{commonColTag}}"/>
+					{{/useCommonColTag}}
+					<label>
+				    <input type="checkbox" checked="{{useSelfClosingTags}}">
+				    <span class="label-body">Use self-closing tags</span>
+			  	</label>
+					<label>Tab Size</label>
+					<input type="text" class="u-full-width" value="{{tabLength}}"/>
+				</form>
+			</div>
 		</script>
 
 		<script type="text/html" id="data-table">
@@ -157,7 +162,10 @@
 
 		<script type="text/html" id="xml">
 			<div class="xml-container" id="sheet-{{id}}-xml">
-				<button on-click="scrollToElement:{{'sheet-' + id + '-data-table'}}">Go to top of data table</button>
+				<button on-click="scrollToElement:{{'sheet-' + id + '-data-table'}}">
+						<span>Go to top of data table</span>
+						<i class="fa fa-hand-o-up fa-2x"></i>
+				</button>
 
 				<pre><code>
 					{{#if rows}}

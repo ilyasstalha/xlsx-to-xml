@@ -16,7 +16,8 @@ var processLoadedFile = function(e) {
   	return;
   }
 
-  resetSheets();
+  resetSheets(0);
+	ractive.set('visibleSheet', 0);
 
   if(workbook.SheetNames) {
 		_.each(workbook.SheetNames, function(sheetName, i) {
@@ -27,9 +28,8 @@ var processLoadedFile = function(e) {
   finishedProcessing('Workbook processed');
 }
 
-var resetSheets = function() {
-	ractive.set('sheets', []);
-	visibleSheet = 0;
+var resetSheets = function(visibleSheet) {
+	ractive.set({sheets: [], visibleSheet: null});
 }
 
 var addSheet = function(worksheet, name, isVisible) {
@@ -46,9 +46,16 @@ var finishedProcessing = function(message) {
 }
 
 var switchSheet = function(id) {
-	ractive.set('sheets.' + visibleSheet + '.isVisible', false);
+	var visibleId = ractive.get('visibleSheet');
+	ractive.set('sheets.' + visibleId + '.showSettingsForm', false);
+	ractive.set('sheets.' + visibleId + '.isVisible', false);
 	ractive.set('sheets.' + id + '.isVisible', true);
-	visibleSheet = id;
+	ractive.set('visibleSheet', id);
+	// visibleSheet = id;
+}
+
+var showSettingsForm = function(id) {
+	ractive.toggle('sheets.' + id + '.showSettingsForm');
 }
 
 var setSheetData = function(sheetName, data, isVisible) {
@@ -171,14 +178,6 @@ var renderColNode = function(cell, sheet, n) {
 	return renderNodeOpeningTag(tag, 2, sheet.tabLength) + cell.content + renderNodeClosingTag(tag, 2, sheet.tabLength, true);
 }
 
-// var updateAllColTags = function(newTag, sheetId) {
-// 	ractive.set('sheets.' + sheetId + '.colTags.*', newTag);
-// }
-
-// var updateAllRowTags = function(tag) {
-
-// }
-
 var getRowIdFromEvent = function(e) {
 	return e.index.r;
 }
@@ -191,6 +190,9 @@ var initMain = function() {
 	ractive = new Ractive({
 	  el: '#container',
 	  template: '#template-main',
+	  transitions: {
+	  	slideDown: slideDownTransition
+	  },
 	  data: {
 	  	statusMessage: 'waiting for file selection...',
 	  	processing: false,
@@ -201,7 +203,8 @@ var initMain = function() {
   			root: 'root'
 	  	},
 	  	outputXML: renderSheetXML,
-	  	visibleSheet: null
+	  	visibleSheet: null,
+	  	settingsSpin: false
 	  }
 	});
 
@@ -212,11 +215,12 @@ var initMain = function() {
 
 			readFile(e.node.files[0]);
 		},
-		toggleSettingsForm: function(e) {
-			ractive.toggle('sheets.' + getSheetIdFromEvent(e) + '.showSettingsForm');
-		},
-		switchSheet: function(e, i) {
-			switchSheet(i);
+		navButtonPress: function(e, i) {
+			if(i === ractive.get('visibleSheet')) {
+				showSettingsForm(i);
+			} else {
+				switchSheet(i);
+			}
 		},
 		useRowForColNodeNames: function(e, row) {
 			var sheetId = e.index.id,
@@ -238,17 +242,6 @@ var initMain = function() {
 			}
 		}
 	});
-
-	// update col tag values when common tag is changed
-	// ractive.observe('sheets.*.commonColTag', function(newValue, oldValue, keypath) {
-	// 	if()
-	// 	updateAllColTags(newValue, _.first(_.last(keypath.split('sheets.')).split('.')));
-	// }, {init: false});
-
-	// update data
-	// ractive
-
-
 }
 
 var Sheet = function(id, worksheet, rowTag, XLSX) {
@@ -279,6 +272,23 @@ var Sheet = function(id, worksheet, rowTag, XLSX) {
 		}
 	}
 }
+
+var slideDownTransition = function(t) {
+	if(t.isIntro) {
+		var styles = t.getStyle(['height', 'padding']);
+
+		t.setStyle({ height: 0,  overflow: 'hidden' });
+
+		t.animateStyle(styles, {duration: 300}).then(t.complete);
+	} else {
+		t.setStyle({ overflow: 'hidden' });
+		t.animateStyle({height: 0, paddingTop: 0, paddingBottom: 0}, {duration: 300}).then(function() {
+			t.complete();
+		});
+	}
+
+};
+
 
 
 initMain();
