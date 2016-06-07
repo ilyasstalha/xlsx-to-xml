@@ -1,8 +1,8 @@
 # xlsx-to-xml
 
-This tool is a NodeJS app that converts spreadsheets (currently XLSX files are the only file type to be tested) into simple XML output.
+This tool is a NodeJS app that converts spreadsheets (currently XLSX files are the only file type supported) into simple XML output. 
 
-Example:
+Here's an example of what it can do. This table
 
 <table>
 <tbody>
@@ -27,7 +27,7 @@ Example:
 </tbody>
 </table>
 
-can be converted into:
+can be converted into this XML:
 
 <pre>
 &lt;row&gt;
@@ -52,19 +52,23 @@ can be converted into:
 
 Row and cell tag names can be customised to whatever you want.
 
+The backend is a NodeJS server that serves the static index.html and its resources. The conversion operations are performed entirely on the front-end, utlising several libraries - namely js-xlsx (<a href="/SheetJS/js-xlsx">https://github.com/SheetJS/js-xlsx</a>) to read the spreadsheet and RactiveJS (<a href="/ractivejs/ractive">https://github.com/ractivejs/ractive</a>) to render the UI.
+
 To install:
 <ol>
-  <li>Download and unzip the attached or the latest version from Github (https://github.com/ljelewis/xlsx-to-xml).
+  <li>Download or clone the latest version.
   <li>Install NodeJS (which should include NPM) if you don't have it installed already (https://nodejs.org).
-  <li>Browse to the folder on the command line and enter "npm install".
+  <li>Browse to the folder on the command line and enter "npm install" to download Node dependencies.
 </ol>
 
 To use:
 
 <ol>
-  <li>You need to run in a modern browser. So far I've tested in Chrome.
-  <li>Browse to the folder on the command line and enter "node server.js" to run the app on the default port (8888). To run on a different port include the port number in the command, after server.js.
-  <li>A browser should open automatically or open one yourself and browse to the app's URL, which should be shown in the console (usually http://localhost:8888).
-  <li>Choose the file you want to convert and the app will process it immediately, outputting each worksheet in its own tab. 
-  <li>Use the conversion settings and other controls to customise the tags and tabs and remove rows from the output.
+  <li>You need to run in a modern browser. So far I've tested in Chrome and Firefox (versions 50 and 43, respectively, at time of writing).</li>
+  <li>Browse to the folder on the command line and enter "node server.js" to run the app on the default port (8888). To run on a different port include the port number as the second argument to the node command when starting the app (e.g. "node server.js 8889").</li>
+  <li>A browser should open automatically or open one yourself and browse to the app's URL, which should be shown in the console (http://localhost:8888 if on the default port).</li>
+  <li>Choose the file you want to convert and the app will process it immediately, outputting each worksheet in its own tab. </li>
+  <li>Use the conversion settings and other controls to customise the tags and tabs and remove rows from the output.</li>
 </ol>
+
+<strong>NOTE: </strong>The version of js-xlsx included in this package is a slightly modded version of the latest version from May 2016. The pull request is in the queue (https://github.com/SheetJS/js-xlsx/pull/420).
