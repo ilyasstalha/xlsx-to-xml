@@ -21,16 +21,14 @@
 		<script type="text/html" id="template-main">
 			<div id="top-bar">
 				<div class="row" id="file-input-container">
-					<div class="six columns">
-						<form id="file-input-form">
-							<input class="u-full-width" type='file' on-change="chooseFile" />
-							{{#processing}}
-								<i class="fa fa-circle-o-notch fa-spin loading"></i>
-							{{/processing}}
+					<div class="twelve columns">
+						<form id="file-input-form" method="post" action="" enctype="multipart/form-data">
+						  <div class="file-input">
+						    <input id="file-input-input" type="file" on-change="chooseFile" />
+						    <label for="file-input-input"><strong>Choose a file</strong><span class="file-drag-n-drop"> or drag it here</span>.</label>
+						  </div>
 						</form>
-					</div>
-					<div class="six columns">
-							Status: {{statusMessage}}
+						<span class="status-message">Status: {{statusMessage}}</span>
 					</div>
 				</div>
 

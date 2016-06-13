@@ -16,8 +16,28 @@ body {
 	height: 25px;
 }
 
-#file-input-form, #file-input-form input {
-	margin-bottom: 0;
+#file-input-form {
+  padding: 100px 20px;
+  text-align: center;
+  outline: 2px dashed black;
+  outline-offset: -10px;
+}
+
+#file-input-input {
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+.file-drag-n-drop {
+	font-weight: normal;
+}
+
+.status-message {
+	margin-left: 10px;
 }
 
 #sheets-nav button {
