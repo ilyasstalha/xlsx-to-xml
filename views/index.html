@@ -8,9 +8,7 @@
 		<link rel='stylesheet' href='css/style.css?v=0' />
 	</head>
 	<body>
-		<div id="container">
-
-		</div>
+		<div id="container"></div>
 
 		<script type="text/javascript" src="js/vendor/jszip.js"></script>
 		<script type="text/javascript" src="js/vendor/cpexcel.js"></script>
@@ -22,13 +20,23 @@
 			<div id="top-bar">
 				<div class="row" id="file-input-container">
 					<div class="twelve columns">
-						<form id="file-input-form" method="post" action="" enctype="multipart/form-data">
-						  <div class="file-input">
-						    <input id="file-input-input" type="file" on-change="chooseFile" />
-						    <label for="file-input-input"><strong>Choose a file</strong><span class="file-drag-n-drop"> or drag it here</span>.</label>
-						  </div>
-						</form>
+						{{#fileInput.show}}
+							<form id="file-input-form" method="post" action="" enctype="multipart/form-data" on-dragover="fileInputDrag" on-dragleave="fileInputDrag"  on-drop="fileInputDrop" class="{{#fileInput.dragging}}dragging{{/fileInput.dragging}}"  intro="slideDown" outro="slideDown">
+							  <div class="file-input">
+							    <input id="file-input-input" type="file" on-change="chooseFile" />
+							    <label for="file-input-input"><strong>Choose a file</strong><span class="file-drag-n-drop"> or drag it here</span>.</label>
+							  </div>
+							  {{#fileInput.showHideButton}}
+									<a class="button button-top-right button-primary button-close" on-click="hideFileInput" title="Hide file input"><i class="fa fa-times"></i></a>
+							  {{/fileInput.showHideButton}}
+							</form>
+						{{/fileInput.show}}
+
 						<span class="status-message">Status: {{statusMessage}}</span>
+
+						{{^fileInput.show}}
+							<button class="button-primary button-top-right" on-click="showFileInput" title="Choose another file"><i class="fa fa-file-text-o"></i></button>
+						{{/fileInput.show}}
 					</div>
 				</div>
 
@@ -43,11 +51,17 @@
 								{{/showSettingsForm}}
 							</button>
 						{{/sheets}}
+
 					</div>
 				</div>
 			</div>
 
-			<div id="sheets-container">
+			{{#fileInput.show}}
+				<div id="sheets-container-spacer" intro="slideDown" outro="slideDown"></div>
+			{{/fileInput.show}}
+
+
+			<div id="sheets-container"  class="{{#fileInput.show}}file-input-visible{{/fileInput.show}}">
 				{{#sheets:id}}
 					{{#isVisible}}
 						{{>sheet}}

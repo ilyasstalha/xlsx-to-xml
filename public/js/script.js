@@ -1,8 +1,17 @@
 var ractive,
 	visibleSheet;
 
+var fileLoadFailed = function(e) {
+	setMessage('unable to load file');
+}
+
 var readFile = function(file) {
   var reader = new FileReader();
+
+	ractive.fire('hideFileInput');
+
+	ractive.set('processing', true);
+	setMessage('processing new file...');
 
   reader.onload = processLoadedFile;
   reader.readAsBinaryString(file);
@@ -204,17 +213,15 @@ var initMain = function() {
 	  	},
 	  	outputXML: renderSheetXML,
 	  	visibleSheet: null,
-	  	settingsSpin: false
+	  	fileInput: {
+	  		dragging: false,
+	  		show: true,
+	  		showHideButton: true
+	  	}
 	  }
 	});
 
 	ractive.on({
-		chooseFile: function(e) {
-			ractive.set('processing', true);
-			ractive.set('statusMessage', 'processing new file...');
-
-			readFile(e.node.files[0]);
-		},
 		navButtonPress: function(e, i) {
 			if(i === ractive.get('visibleSheet')) {
 				showSettingsForm(i);
@@ -240,7 +247,34 @@ var initMain = function() {
 			if(element) {
 				element.scrollIntoView();
 			}
-		}
+		},
+		fileInputDrag: function(e) {
+			e.original.stopPropagation();
+			e.original.preventDefault();
+			ractive.set('fileInput.dragging', e.original.type === 'dragover');
+		},
+		fileInputDrop: function(e) {
+			ractive.fire('fileInputDrag', e);
+
+			if(e.original.dataTransfer && e.original.dataTransfer.files && e.original.dataTransfer.files instanceof FileList && 
+					_.has(e.original.dataTransfer.files, 0)) {
+				readFile(e.original.dataTransfer.files[0]);
+			} else {
+				fileLoadFailed(e);
+			}
+		},
+		chooseFile: function(e) {
+			readFile(e.node.files[0]);
+		},
+		showFileInput: function(e) {
+			ractive.set('fileInput.showHideButton', true);
+			ractive.set('fileInput.show', true);
+
+		},
+		hideFileInput: function(e) {
+			ractive.set('fileInput.showHideButton', false);
+			ractive.set('fileInput.show', false);
+		},
 	});
 }
 
@@ -273,23 +307,43 @@ var Sheet = function(id, worksheet, rowTag, XLSX) {
 	}
 }
 
-var slideDownTransition = function(t) {
+var slideDownTransition = function(t, params) {
+	var targetStyles,
+		props = [
+			'height',
+			'borderTopWidth',
+			'borderBottomWidth',
+			'paddingTop',
+			'paddingBottom',
+			'marginTop',
+			'marginBottom'
+		],
+		collapsedStyle = {
+			height: 0,
+			borderTopWidth: 0,
+			borderBottomWidth: 0,
+			paddingTop: 0,
+			paddingBottom: 0,
+			marginTop: 0,
+			marginBottom: 0
+		};
+
 	if(t.isIntro) {
-		var styles = t.getStyle(['height', 'padding']);
+		targetStyles = t.getStyle(props);
 
-		t.setStyle({ height: 0,  overflow: 'hidden' });
+		t.setStyle(collapsedStyle);
 
-		t.animateStyle(styles, {duration: 300}).then(t.complete);
 	} else {
-		t.setStyle({ overflow: 'hidden' });
-		t.animateStyle({height: 0, paddingTop: 0, paddingBottom: 0}, {duration: 300}).then(function() {
-			t.complete();
-		});
+		t.setStyle(t.getStyle(props));
+
+		targetStyles = collapsedStyle;
+
 	}
 
+	t.setStyle( 'overflowY', 'hidden' );
+
+	t.animateStyle(targetStyles, {duration: 300}).then(t.complete);
 };
-
-
 
 initMain();
 

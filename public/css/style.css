@@ -17,10 +17,23 @@ body {
 }
 
 #file-input-form {
+	position: relative;
   padding: 100px 20px;
   text-align: center;
   outline: 2px dashed black;
   outline-offset: -10px;
+}
+
+#file-input-form.dragging
+{
+	color: #f00;
+	border-color: #f00;
+	border-style: solid;
+	box-shadow: inset 0 3px 4px #888;
+}
+
+#file-input-form .button-top-right {
+	border-radius: initial;
 }
 
 #file-input-input {
@@ -32,12 +45,26 @@ body {
 	z-index: -1;
 }
 
+label[for="file-input-input"] {
+	cursor: pointer;
+}
+
 .file-drag-n-drop {
 	font-weight: normal;
 }
 
 .status-message {
 	margin-left: 10px;
+}
+
+.button-top-right {
+  right: 0;
+  position: absolute;
+  top: 0;
+  border-radius: 0 0 0 5px;
+  width: 38px;
+  padding: 0;
+  font-size: 1.5em;
 }
 
 #sheets-nav button {
@@ -62,6 +89,11 @@ body {
 .nav-bar button:not(:first-of-type) {
 	border-bottom-left-radius: 0;
 	border-top-left-radius: 0;
+}
+
+#sheets-container-spacer  {
+	height: 250px;
+	width: 100%;
 }
 
 #sheets-container {
@@ -147,4 +179,14 @@ button.button-primary:disabled {
 
 .button-icon-text .fa-2x {
 	margin-top: 8px;
+}
+
+.button.button-close {
+  background-color: #e6a7a7;
+  border-color: #e6a7a7;
+}
+
+.button.button-close:hover {
+  background-color: #de7b7b;
+  border-color: #de7b7b;
 }
