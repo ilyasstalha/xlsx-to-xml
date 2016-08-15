@@ -20,20 +20,20 @@ body {
 	position: relative;
   padding: 100px 20px;
   text-align: center;
-  outline: 2px dashed black;
-  outline-offset: -10px;
+	border: 2px dashed #b34646;
+  border-radius: 5px;
+  margin: 10px;
 }
 
-#file-input-form.dragging
-{
-	color: #f00;
-	border-color: #f00;
-	border-style: solid;
-	box-shadow: inset 0 3px 4px #888;
+#file-input-form.dragging {
+	color: #b34646;
+  background-color: #f3e9e9;
+  border-style: solid;
+	box-shadow: inset 0 0px 30px rgba(179,70,70,0.7);
 }
 
 #file-input-form .button-top-right {
-	border-radius: initial;
+	border-radius: 0 5px 0 5px;
 }
 
 #file-input-input {
